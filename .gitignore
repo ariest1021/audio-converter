@@ -1,0 +1,27 @@
+# Byte-compiled / cache files
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.log
+
+# Virtual environment
+venv/
+env/
+ENV/
+.venv/
+
+# Output and temporary audio files
+audioOutput/*
+!audioOutput/.gitkeep
+
+audioInput/*
+!audioInput/.gitkeep
+
+# VS Code and IDE settings
+.vscode/
+.idea/
+
+# OS-specific
+.DS_Store
+Thumbs.db
