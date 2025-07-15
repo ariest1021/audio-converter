@@ -8,12 +8,13 @@ outputAudio = "audioOutput"
 audioFormat = "ogg" # Change to whatever format you want the audio file to be converted to.
 
 
-vext = (".wav", ".flac", ".m4a", ".aac", ".mp3") # valid formats
+vext = (".wav", ".flac", ".m4a", ".aac", ".mp3", ".ogg") # valid formats
 files = [f for f in os.listdir(inputAudio) if f.lower().endswith(vext)]
 def convertAudio(filename):
 
-    if not filename.lower().endswith(vext):
-        return
+    if filename.lower().endswith("." + audioFormat):
+           print(f"Skipped [⏭]: {filename}")
+           return
     try:
                 (
                 ffmpeg
