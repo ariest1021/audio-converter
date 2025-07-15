@@ -1,6 +1,7 @@
 # install ffmpeg before running https://www.gyan.dev/ffmpeg/builds/
 import ffmpeg
 import os
+from multiprocessing import Pool
 
 inputAudio = "audioInput"
 outputAudio = "audioOutput"
@@ -8,11 +9,13 @@ audioFormat = "ogg" # Change to whatever format you want the audio file to be co
 
 
 vext = (".wav", ".flac", ".m4a", ".aac", ".mp3") # valid formats
+files = [f for f in os.listdir(inputAudio) if f.lower().endswith(vext)]
+def convertAudio(filename):
 
-for filename in os.listdir(inputAudio): # Loop that goes through each file and converts to whatever format
-    if filename.endswith(vext):
-        try:
-            (
+    if not filename.lower().endswith(vext):
+        return
+    try:
+                (
                 ffmpeg
                 .input(os.path.join(inputAudio, filename))
                 .output(os.path.join(outputAudio, os.path.splitext(filename)[0] + "." + audioFormat),
@@ -20,9 +23,14 @@ for filename in os.listdir(inputAudio): # Loop that goes through each file and c
                 audio_bitrate='128k',
                 ac=2,
                 ar=48000,
-                threads=0
+                threads=1
                 )
-                .run()
+                .run(quiet=True, overwrite_output=True)
             )
-        except ffmpeg.Error as e:
-            print(f"Failed to convert {filename}:\n{e.stderr.decode()}")
+                print(f"Success [✔]: {filename}")
+    except ffmpeg.Error as e:
+                print(f"Fail [✘]: {filename}\n{e.stderr.decode()}")
+
+if __name__ == "__main__":
+    with Pool(processes=os.cpu_count()) as pool:
+        pool.map(convertAudio, files)
