@@ -1,6 +1,7 @@
 # install ffmpeg before running https://www.gyan.dev/ffmpeg/builds/
 import ffmpeg
 import os
+from tqdm import tqdm
 from multiprocessing import Pool
 
 inputAudio = "audioInput"
@@ -13,7 +14,6 @@ files = [f for f in os.listdir(inputAudio) if f.lower().endswith(vext)]
 def convertAudio(filename):
 
     if filename.lower().endswith("." + audioFormat):
-           print(f"Skipped [⏭]: {filename}")
            return
     try:
                 (
@@ -28,10 +28,14 @@ def convertAudio(filename):
                 )
                 .run(quiet=True, overwrite_output=True)
             )
-                print(f"Success [✔]: {filename}")
     except ffmpeg.Error as e:
-                print(f"Fail [✘]: {filename}\n{e.stderr.decode()}")
+                return
 
 if __name__ == "__main__":
+    os.makedirs(outputAudio, exist_ok=True)
+    files = [f for f in os.listdir(inputAudio) if f.lower().endswith(vext)]
+
     with Pool(processes=os.cpu_count()) as pool:
-        pool.map(convertAudio, files)
+        for result in tqdm(pool.imap_unordered(convertAudio, files), total=len(files), desc="Converting"):
+            if result:
+                print(result)
