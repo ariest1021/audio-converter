@@ -2,8 +2,8 @@ Simple Python script that converts audio files to a chosen format.
 
 **TODO**
 * Optimization!!!!
-* Multithread support
-* Skip files already in target format
+~~* Multithread support~~
+~~* Skip files already in target format~~
 * Optional auto-delete after conversion
 
 
