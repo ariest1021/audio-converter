@@ -1,6 +1,5 @@
 # Audio Converter
-
-This project converts audio and MIDI files to a specified audio format using Python, FFmpeg, and FluidSynth.
+Converts audio files using Python, FFmpeg, and FluidSynth
 
 ## Requirements
 
