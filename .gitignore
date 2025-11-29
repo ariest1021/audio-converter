@@ -18,6 +18,12 @@ audioOutput/*
 audioInput/*
 !audioInput/.gitkeep
 
+soundfonts/*
+!soundfonts/.gitkeep
+
+bin/*
+!bin/.gitkeep
+
 # VS Code and IDE settings
 .vscode/
 .idea/
