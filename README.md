@@ -1,18 +1,14 @@
-Simple Python script that converts audio files to a chosen format.
+# Audio Converter
 
-**TODO**
-* Optimization!!!!
-* ~~Multithread support~~
-* ~~Skip files already in target format~~
-* Optional auto-delete after conversion
+This project converts audio and MIDI files to a specified audio format using Python, FFmpeg, and FluidSynth.
 
+## Requirements
 
-**How to use**
-* Install dependencies <br>
-``pip install -r requirements.txt`` <br>
-``ffmpeg: https://www.gyan.dev/ffmpeg/builds/`` <br>
-* Put supported files inside the ``audioInput/`` folder.
+- **FFmpeg** – [Download](https://www.gyan.dev/ffmpeg/builds/)
+- **FluidSynth** – [Download](https://www.fluidsynth.org/)
+  - Place the FluidSynth binary in the `bin/` folder.
+- **SoundFont** (`.sf2`) – Place in `soundfont/` folder.
+- **Python packages** – Install dependencies:
 
-* Run from terminal/command prompt <br>
-``python main.py`` <br>
-This convers supported audio files from ``audioInput`` and saves them in ``audioOutput/``
+```bash
+pip install -r requirements.txt
