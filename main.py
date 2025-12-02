@@ -7,25 +7,26 @@ from midi2audio import FluidSynth
 import os
 from tqdm import tqdm
 from multiprocessing import Pool
+import time
 import subprocess
 import tempfile
 
 
 # Config
-inputAudio = "audioInput" # Input Folder
-outputAudio = "audioOutput" # Output Folder
 audioFormat = "ogg" # Change to whatever format you want the audio file to be converted to.
 vext = (".wav", ".flac", ".m4a", ".aac", ".mp3", ".ogg") # Valid Formats
 vext_midi = (".mid", ".midi") # Valid MIDI Formats
-max_cores = 4 # Max CPU cores to use
-
+max_cores = 1 # Max CPU cores to use
 # Paths
 basedir = os.path.abspath(os.path.dirname(__file__))
 soundfont_path = os.path.join(basedir, "soundfont", "soundfont.sf2") # Path to SoundFont file
-
-# FluidSynth binary (use if available, otherwise fallback to Python renderer)
 fs_bin = os.path.join(basedir, "bin", "fluidsynth.exe")  # Path to FluidSynth binary
 fs_bin_exists = os.path.exists(fs_bin)
+inputAudio = "audioInput" # Input Folder
+outputAudio = "audioOutput" # Output Folder
+
+
+# FluidSynth binary (use if available, otherwise fallback to Python renderer)
 if fs_bin_exists:
     os.environ["PATH"] = os.path.dirname(fs_bin) + os.pathsep + os.environ.get("PATH", "")
 
@@ -33,7 +34,8 @@ else:
      if not os.path.exists(soundfont_path):
             raise FileNotFoundError("SoundFont file not found and FluidSynth binary is missing.")
      else:
-          pass # SoundFont file exists but no binary, will use Python renderer
+          pass # SoundFont file exists but no binary, will use Python renderer    
+
      
 # Convert Audio File: Converts audio files to specified format
 def convertAudio(filename):
@@ -46,17 +48,17 @@ def convertAudio(filename):
         with open("failed_conversions.txt", "a", encoding="utf-8") as log:
             log.write(f"{filename} - {msg}\n")
 
+
+        # Renders MIDI to WAV
     try:
-        # Converts To MIDI
         if filename.lower().endswith(vext_midi):
             temp_wav_path = os.path.join(tempfile.gettempdir(), os.path.splitext(filename)[0] + "_tmp.wav")
-
             success = False
             if fs_bin_exists:
                 # Try both argument orders for fluidsynth
                 orders = [
-                    [fs_bin, "-ni", "-F", temp_wav_path, soundfont_path, input_path],
-                    [fs_bin, "-ni", "-F", temp_wav_path, input_path, soundfont_path],
+                   [fs_bin, "-ni", "-F", temp_wav_path, soundfont_path, input_path],
+                    [fs_bin, "-F", temp_wav_path, "-ni", soundfont_path, input_path],
                 ]
                 for cmd in orders:
                     try:
@@ -81,39 +83,27 @@ def convertAudio(filename):
             if not success:
                 log_fail("MIDI render failed — no valid WAV created")
                 return False
+            input_path = temp_wav_path
 
-            # Transcode to output format
-            try:
-                ffmpeg.input(temp_wav_path).output(
-                    output_path,
-                    codec="libopus",
-                    threads=1,
-                    map="0:a"
-                ).run(quiet=True, overwrite_output=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            except ffmpeg.Error as e:
-                log_fail("ffmpeg error during MIDI conversion")
-                return False
-            finally:
-                if os.path.exists(temp_wav_path):
-                    try:
-                        os.remove(temp_wav_path)
-                    except Exception:
-                        pass
 
-            return True
-
-        # Converts To Other Audio Formats
+        # Convert to target audio format and cleans up temprorary WAV files
         try:
             ffmpeg.input(input_path).output(
                 output_path,
                 codec="libopus",
                 threads=1,
                 map="0:a"
-            ).run(quiet=True, overwrite_output=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            ).run(quiet=True, overwrite_output=True)
             return True
         except ffmpeg.Error:
             log_fail("ffmpeg error during audio conversion")
             return False
+        finally:
+            if filename.lower().endswith(vext_midi) and os.path.exists(input_path):
+                try:
+                    os.remove(input_path)
+                except Exception:
+                    pass
 
     except Exception as e:
         log_fail(f"Unexpected error: {e}")
@@ -128,7 +118,6 @@ if __name__ == "__main__":
         f for f in os.listdir(inputAudio)
         if f.lower().endswith(supported_exts) and not f.lower().endswith(audioFormat)
     ]
-
     # Multiprocessing Pool
     with Pool(processes=min(os.cpu_count(), max_cores)) as pool:
         chunksize = max(1, len(files) // (min(os.cpu_count(), max_cores) * 4))

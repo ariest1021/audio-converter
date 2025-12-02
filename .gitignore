@@ -31,3 +31,4 @@ bin/*
 # OS-specific
 .DS_Store
 Thumbs.db
+failed_conversions.txt
